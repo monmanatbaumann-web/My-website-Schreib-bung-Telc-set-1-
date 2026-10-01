@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>telc A2-B1: Welche & Was für ein - Deutsch mit Monmanat</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #f0f4f8; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; position: relative; padding-bottom: 60px; }
+        .container { background: white; max-width: 750px; width: 100%; border-radius: 12px; padding: 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        .controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 10px; flex-wrap: wrap; }
+        button { background-color: #007bff; color: white; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; transition: 0.2s; }
+        button:hover { background-color: #0056b3; }
+        
+        .timer-group { display: flex; align-items: center; gap: 6px; }
+        .timer-btn { background-color: #ff9800; }
+        .timer-btn:hover { background-color: #e68a00; }
+        .timer-select { padding: 9px; border-radius: 6px; border: 1px solid #ccc; font-weight: bold; font-size: 14px; }
+        
+        .card-count { font-weight: bold; color: #555; }
+        .card { border: 2px solid #e2e8f0; border-radius: 10px; padding: 20px; background-color: #fff; position: relative; }
+        .exam-badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; margin-bottom: 10px; background-color: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+        
+        .w-question-box { font-size: 15px; color: #991b1b; font-weight: bold; margin-bottom: 8px; background: #fee2e2; padding: 10px 12px; border-left: 5px solid #ef4444; border-radius: 4px; }
+        .thai-sentence { font-size: 16px; color: #1e293b; font-weight: bold; margin-bottom: 12px; background: #e2e8f0; padding: 12px; border-left: 5px solid #0284c7; border-radius: 4px; }
+        
+        .vocab-box { background: #fffbe2; border: 1px solid #fef08a; padding: 10px 15px; border-radius: 6px; margin-bottom: 15px; font-size: 14px; }
+        .vocab-title { font-weight: bold; color: #b45309; margin-bottom: 3px; }
+        
+        /* Interactive Word Boxes */
+        .drop-zone { min-height: 55px; border: 2px dashed #94a3b8; background-color: #f8fafc; border-radius: 8px; padding: 8px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 15px; }
+        .words-pool { min-height: 55px; background-color: #f1f5f9; border-radius: 8px; padding: 10px; display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; }
+        .word-chip { background-color: #ffffff; border: 1.5px solid #0284c7; color: #0369a1; padding: 8px 12px; border-radius: 6px; font-weight: 600; font-size: 15px; cursor: pointer; user-select: none; transition: 0.15s; }
+        .word-chip:hover { background-color: #e0f2fe; transform: translateY(-2px); }
+        
+        .action-btns { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+        .check-btn { background-color: #22c55e; }
+        .check-btn:hover { background-color: #16a34a; }
+        .reset-btn { background-color: #64748b; }
+        .reset-btn:hover { background-color: #475569; }
+
+        .answer-box { background: #f0fdf4; border: 1px solid #bbf7d0; padding: 15px; border-radius: 6px; display: none; margin-top: 15px; }
+        .timer-display { font-size: 18px; font-weight: bold; color: #dc2626; }
+        .watermark { position: fixed; bottom: 12px; right: 18px; font-size: 14px; font-weight: bold; color: rgba(0, 0, 0, 0.35); pointer-events: none; z-index: 1000; }
+        .audio-btn { background-color: #0891b2; margin-top: 10px; }
+        .audio-btn:hover { background-color: #0e7490; }
+        .feedback { font-weight: bold; margin-bottom: 10px; font-size: 15px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="controls">
+        <button onclick="drawCard()" id="drawBtn">🎴 สุ่มจับการ์ดใบใหม่</button>
+        
+        <div class="timer-group">
+            <select id="timerSelect" class="timer-select">
+                <option value="60">1 นาที</option>
+                <option value="120">2 นาที</option>
+            </select>
+            <button class="timer-btn" onclick="startTimer()">⏱️ จับเวลา</button>
+        </div>
+        
+        <span class="timer-display" id="timerText"></span>
+        <span class="card-count" id="cardCounter">การ์ดคงเหลือ: 50/50</span>
+    </div>
+
+    <div class="card" id="cardArea">
+        <span class="exam-badge">📩 telc A2-B1: Welche / Was für ein... & W-Fragen</span>
+        
+        <div class="w-question-box" id="wQuestion">❓ คำถามที่ได้รับ: -</div>
+        <div class="thai-sentence" id="thaiContext">กดปุ่ม "สุ่มจับการ์ดใบใหม่" เพื่อเริ่มต้นทำแบบฝึกหัด</div>
+        
+        <div class="vocab-box">
+            <div class="vocab-title">💡 คำศัพท์ตัวช่วย (Wortschatz-Hilfe):</div>
+            <div id="vocabList">-</div>
+        </div>
+
+        <div style="font-size: 13px; color: #64748b; margin-bottom: 5px;">คลิกคำศัพท์เพื่อเรียงประโยคตอบกลับข้อความ:</div>
+        <div class="drop-zone" id="userSentence"></div>
+
+        <div style="font-size: 13px; color: #64748b; margin-bottom: 5px;">ชุดคำศัพท์ที่กำหนดให้:</div>
+        <div class="words-pool" id="wordPool"></div>
+
+        <div class="action-btns">
+            <button class="check-btn" onclick="checkUserSentence()">✅ ตรวจคำตอบ</button>
+            <button class="reset-btn" onclick="resetWords()">🔄 เรียงใหม่</button>
+            <button onclick="toggleAnswer()" id="toggleAnsBtn">👁️ เฉลย</button>
+        </div>
+
+        <div class="feedback" id="feedbackText"></div>
+        
+        <div class="answer-box" id="answerArea">
+            <strong style="color: #15803d; font-size: 15px;">เฉลยประโยคตอบกลับที่ถูกต้อง:</strong>
+            <p id="correctSentence" style="margin: 6px 0; font-weight: bold; color: #0f172a; font-size: 16px;"></p>
+            <p id="deTranslation" style="margin: 6px 0; font-size: 14px; color: #334155; line-height: 1.5;"></p>
+            <button class="audio-btn" onclick="speakText()">🔊 กดเปิดฟังเสียงอ่านเฉลย</button>
+        </div>
+    </div>
+</div>
+
+<div class="watermark">Deutsch mit Monmanat</div>
+
+<script>
+// คลังข้อมูลสถานการณ์เน้นการตอบคำถามประเภท Welche, Was für ein/eine และ W-Fragen อื่นๆ
+const rawData = [
+    { question: "Welchen Kurs möchtest du im nächsten Semester besuchen?", thai: "ฉันอยากลงเรียนคอร์สภาษาเยอรมันระดับ B1 ในเทอมหน้า", vocab: "Welchen = ตัวไหน/คอร์สไหน (Akk.), besuchen = เข้าเรียน/ลงเรียน", correct: "Ich möchte im nächsten Semester einen Deutschkurs B1 besuchen.", words: ["Ich", "möchte", "im", "nächsten", "Semester", "einen", "Deutschkurs", "B1", "besuchen."] },
+    { question: "Was für ein Auto hast du dir gekauft?", thai: "ฉันซื้อรถยนต์ไฟฟ้าคันเล็กๆ สีขาวมาหนึ่งคัน", vocab: "Was für ein = (รถ) แบบไหน/ประเภทไหน, gekauft = ซื้อแล้ว", correct: "Ich habe mir ein kleines weißes Elektroauto gekauft.", words: ["Ich", "habe", "mir", "ein", "kleines", "weißes", "Elektroauto", "gekauft."] },
+    { question: "Welche Farbe gefällt dir am besten?", thai: "ฉันชอบสีฟ้ามากที่สุดเพราะว่ามันทำให้รู้สึกผ่อนคลาย", vocab: "Welche = สีไหน/สีอะไร, am besten = ดีที่สุด/ชอบที่สุด", correct: "Mir gefällt Blau am besten, weil es beruhigend ist.", words: ["Mir", "gefällt", "Blau", "am", "besten,", "weil", "es", "beruhigend", "ist."] },
+    { question: "Was für eine Musik hörst du gerne beim Lernen?", thai: "เวลาเรียนฉันชอบฟังเพลงคลาสสิกเบาๆ", vocab: "Was für eine = (เพลง) แบบไหน, beim Lernen = ขณะเรียน", correct: "Beim Lernen höre ich sehr gerne ruhige klassische Musik.", words: ["Beim", "Lernen", "höre", "ich", "sehr", "gerne", "ruhige", "klassische", "Musik."] },
+    { question: "Welches Buch kannst du mir empfehlen?", thai: "ฉันแนะนำนิยายสืบสวนสอบสวนเล่มใหม่เรื่องนี้ให้คุณเลย", vocab: "Welches = (หนังสือ) เล่มไหน, empfehlen = แนะนำ", correct: "Ich kann dir diesen neuen Krimi sehr empfehlen.", words: ["Ich", "kann", "dir", "diesen", "neuen", "Krimi", "sehr", "empfehlen."] },
+    { question: "Was für einen Geschenk hat er zum Geburtstag bekommen?", thai: "เขาได้รับนาฬิกาข้อมือเรือนสวยจากครอบครัวของเขา", vocab: "Was für einen = (ของขวัญ) แบบไหน, bekommen = ได้รับ", correct: "Er hat eine schöne Armbanduhr von seiner Familie bekommen.", words: ["Er", "hat", "eine", "schöne", "Armbanduhr", "von", "seiner", "Familie", "bekommen."] },
+    { question: "In welchem Restaurant wollt ihr heute Abend essen?", thai: "พวกเราอยากไปทานอาหารที่ร้านอาหารอิตาเลียนตรงใกล้ๆ สถานีรถไฟ", vocab: "In welchem = ใน (ร้าน) ไหน (+Dativ), essen = ทานอาหาร", correct: "Wir wollen im italienischen Restaurant in der Nähe vom Bahnhof essen.", words: ["Wir", "wollen", "im", "italienischen", "Restaurant", "in", "der", "Nähe", "vom", "Bahnhof", "essen."] },
+    { question: "Was für Kleidung soll ich zur Party anziehen?", thai: "คุณควรจะสวมชุดเดรสสวยๆ หรือชุดที่สบายๆ ไปงาน", vocab: "Was für = (เสื้อผ้า) แบบไหน, anziehen = สวมใส่", correct: "Du solltest ein schönes Kleid oder etwas Bequemes anziehen.", words: ["Du", "solltest", "ein", "schönes", "Kleid", "oder", "etwas", "Bequemes", "anziehen."] },
+    { question: "Welcher Tag passt dir für unser Treffen am besten?", thai: "วันศุกร์สะดวกสำหรับฉันที่สุดเพราะฉันไม่มีงานตอนเย็น", vocab: "Welcher = วันไหน (Nominativ), passen = สะดวก/เหมาะสม", correct: "Der Freitag passt mir am besten, weil ich abends frei habe.", words: ["Der", "Freitag", "passt", "mir", "am", "besten,", "weil", "ich", "abends", "frei", "habe."] },
+    { question: "Was für eine Stelle suchst du nach dem Studium?", thai: "ฉันกำลังมองหางานในตำแหน่งการตลาดที่บริษัทนานาชาติ", vocab: "Was für eine = (ตำแหน่งงาน) แบบไหน, suchen = หา/มองหา", correct: "Ich suche eine Stelle im Marketing bei einer internationalen Firma.", words: ["Ich", "suche", "eine", "Stelle", "im", "Marketing", "bei", "einer", "internationalen", "Firma."] }
+];
+
+// ขยายสุ่มคลังข้อมูลให้ครบ 50 ข้อ
+let quizData = [];
+for(let i = 0; i < 50; i++) {
+    let base = rawData[i % rawData.length];
+    quizData.push({ ...base, id: i + 1 });
+}
+
+let remainingCards = [...quizData];
+let currentCard = null;
+let timerInterval = null;
+let currentWords = [];
+let poolWords = [];
+
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+}
+
+function drawCard() {
+    clearInterval(timerInterval);
+    document.getElementById("timerText").innerText = "";
+    document.getElementById("answerArea").style.display = "none";
+    document.getElementById("toggleAnsBtn").innerText = "👁️ เฉลย";
+    document.getElementById("feedbackText").innerText = "";
+
+    if (remainingCards.length === 0) {
+        alert("🎉 คุณทำครบทั้ง 50 การ์ดแล้ว! ระบบจะรีเซ็ตเริ่มการ์ดใหม่ทั้งหมดครับ");
+        remainingCards = [...quizData];
+    }
+
+    const randomIndex = Math.floor(Math.random() * remainingCards.length);
+    currentCard = remainingCards[randomIndex];
+    remainingCards.splice(randomIndex, 1);
+
+    document.getElementById("cardCounter").innerText = `การ์ดคงเหลือ: ${remainingCards.length}/50`;
+    document.getElementById("wQuestion").innerText = "❓ คำถามที่ได้รับ: " + currentCard.question;
+    document.getElementById("thaiContext").innerText = "🇹🇭 ตอบกลับเป็นไทย: " + currentCard.thai;
+    document.getElementById("vocabList").innerText = currentCard.vocab;
+    document.getElementById("correctSentence").innerText = currentCard.correct;
+    document.getElementById("deTranslation").innerText = "โครงสร้างประโยคตอบกลับ: " + currentCard.correct;
+
+    resetWords();
+}
+
+function resetWords() {
+    currentWords = [];
+    poolWords = [...currentCard.words];
+    shuffleArray(poolWords);
+    document.getElementById("feedbackText").innerText = "";
+    renderWordBoxes();
+}
+
+function renderWordBoxes() {
+    const userZone = document.getElementById("userSentence");
+    const poolZone = document.getElementById("wordPool");
+    
+    userZone.innerHTML = "";
+    poolZone.innerHTML = "";
+
+    currentWords.forEach((word, idx) => {
+        const chip = document.createElement("div");
+        chip.className = "word-chip";
+        chip.innerText = word;
+        chip.onclick = () => removeWord(idx);
+        userZone.appendChild(chip);
+    });
+
+    poolWords.forEach((word, idx) => {
+        const chip = document.createElement("div");
+        chip.className = "word-chip";
+        chip.innerText = word;
+        chip.onclick = () => selectWord(idx);
+        poolZone.appendChild(chip);
+    });
+}
+
+function selectWord(index) {
+    const word = poolWords.splice(index, 1)[0];
+    currentWords.push(word);
+    renderWordBoxes();
+}
+
+function removeWord(index) {
+    const word = currentWords.splice(index, 1)[0];
+    poolWords.push(word);
+    renderWordBoxes();
+}
+
+function checkUserSentence() {
+    const userBuilt = currentWords.join(" ");
+    const feedback = document.getElementById("feedbackText");
+
+    if (userBuilt === currentCard.correct) {
+        feedback.style.color = "#16a34a";
+        feedback.innerText = "🎉 ถูกต้องเก่งมาก! (Richtig! ประโยคถูกต้องตามโครงสร้างตอบ Welche/Was für...)";
+    } else {
+        feedback.style.color = "#dc2626";
+        feedback.innerText = "❌ ยังไม่ถูกต้อง ตรวจสอบตำแหน่งกริยา (Verb position) หรือ Deklination ดูนะครับ";
+    }
+}
+
+function startTimer() {
+    clearInterval(timerInterval);
+    const selectedTime = parseInt(document.getElementById("timerSelect").value);
+    let timeLeft = selectedTime;
+    
+    const timerText = document.getElementById("timerText");
+    timerText.innerText = `⏱️ เหลือเวลา: ${formatTime(timeLeft)}`;
+
+    timerInterval = setInterval(() => {
+        timeLeft--;
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            timerText.innerText = "⏰ หมดเวลา!";
+        } else {
+            timerText.innerText = `⏱️ เหลือเวลา: ${formatTime(timeLeft)}`;
+        }
+    }, 1000);
+}
+
+function formatTime(seconds) {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+}
+
+function toggleAnswer() {
+    const ansArea = document.getElementById("answerArea");
+    const toggleBtn = document.getElementById("toggleAnsBtn");
+    
+    if (ansArea.style.display === "none" || ansArea.style.display === "") {
+        ansArea.style.display = "block";
+        toggleBtn.innerText = "🙈 ซ่อนเฉลย";
+    } else {
+        ansArea.style.display = "none";
+        toggleBtn.innerText = "👁️ เฉลย";
+    }
+}
+
+function speakText() {
+    if (!currentCard) return;
+    window.speechSynthesis.cancel();
+    
+    const utterance = new SpeechSynthesisUtterance(currentCard.correct);
+    utterance.lang = 'de-DE';
+    utterance.rate = 0.85;
+    
+    window.speechSynthesis.speak(utterance);
+}
+
+// เริ่มต้นจับการ์ดใบแรก
+drawCard();
+</script>
+</body>
+</html>
